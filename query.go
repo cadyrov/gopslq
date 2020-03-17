@@ -16,54 +16,107 @@ type Queryer interface {
 	Close() error
 }
 
-type Builder struct {
-	Queryer
+type DB struct {
+	*sql.DB
 }
 
-func NewBuilder(q Queryer) *Builder {
-	return &Builder{q}
+type Tx struct {
+	*sql.Tx
 }
 
-func (b *Builder) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.IError) {
-	if b.Queryer == nil {
+func (b *Tx) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.IError) {
+	if b.Tx == nil {
 		e = goerr.New(" Queryer is nil ")
 		return
 	}
 	logQuery(query, args...)
-	rows, err := b.Queryer.Query(b.Prepare(query), args...)
+	rows, err := b.Tx.Query(prepare(query), args...)
 	if err != nil {
 		e = goerr.New(err.Error())
 	}
 	return
 }
 
-func (b *Builder) QueryRow(query string, args ...interface{}) (row *sql.Row, e goerr.IError) {
-	if b.Queryer == nil {
+func (b *Tx) QueryRow(query string, args ...interface{}) (row *sql.Row, e goerr.IError) {
+	if b.Tx == nil {
 		e = goerr.New(" Queryer is nil ")
 		return
 	}
 	logQuery(query, args...)
-	row = b.Queryer.QueryRow(b.Prepare(query), args...)
+	row = b.Tx.QueryRow(prepare(query), args...)
 	if row == nil {
 		e = goerr.New("no data")
 	}
 	return
 }
 
-func (b *Builder) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IError) {
-	if b.Queryer == nil {
+func (b *Tx) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IError) {
+	if b.Tx == nil {
 		e = goerr.New(" Queryer is nil ")
 		return
 	}
 	logQuery(query, args...)
-	res, err := b.Queryer.Exec(b.Prepare(query), args...)
+	res, err := b.Tx.Exec(prepare(query), args...)
 	if err != nil {
 		e = goerr.New(err.Error())
 	}
 	return
 }
 
-func (b Builder) Prepare(statement string) (prepared string) {
+func (b *DB) Begin(query string, args ...interface{}) (tx *Tx, e goerr.IError) {
+	if b.DB == nil {
+		e = goerr.New(" Queryer is nil ")
+		return
+	}
+	transaction, err := b.DB.Begin()
+	if err != nil {
+		e = goerr.New(err.Error())
+		return
+	}
+	tx = &Tx{transaction}
+	return
+}
+
+func (b *DB) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.IError) {
+	if b.DB == nil {
+		e = goerr.New(" Queryer is nil ")
+		return
+	}
+	logQuery(query, args...)
+	rows, err := b.DB.Query(prepare(query), args...)
+	if err != nil {
+		e = goerr.New(err.Error())
+	}
+	return
+}
+
+func (b *DB) QueryRow(query string, args ...interface{}) (row *sql.Row, e goerr.IError) {
+	if b.DB == nil {
+		e = goerr.New(" Queryer is nil ")
+		return
+	}
+	logQuery(query, args...)
+	row = b.DB.QueryRow(prepare(query), args...)
+	if row == nil {
+		e = goerr.New("no data")
+	}
+	return
+}
+
+func (b *DB) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IError) {
+	if b.DB == nil {
+		e = goerr.New(" Queryer is nil ")
+		return
+	}
+	logQuery(query, args...)
+	res, err := b.DB.Exec(prepare(query), args...)
+	if err != nil {
+		e = goerr.New(err.Error())
+	}
+	return
+}
+
+func prepare(statement string) (prepared string) {
 	pieces := strings.Split(statement, "?")
 	for i := range pieces {
 		if i < (len(pieces) - 1) {

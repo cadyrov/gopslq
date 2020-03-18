@@ -19,7 +19,7 @@ func (m *Migration) Up(q Queryer) (e goerr.IError) {
 	if e != nil {
 		return
 	}
-	_, e = q.Exec(sqlAddMigration(), m.Name, time.Now().UnixNano()/int64(time.Millisecond))
+	_, e = q.Exec(sqlAddMigration(), m.Name, time.Now().UnixNano()/int64(time.Second))
 	return
 }
 

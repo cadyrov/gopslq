@@ -52,7 +52,7 @@ func sqlCreateTableMigration() string {
 
 func sqlAddMigration() string {
 	return `
-		INSERT INTO migration (version, apply_tyme) values (?, ?);
+		INSERT INTO migration (version, apply_time) values (?, ?);
 	`
 }
 

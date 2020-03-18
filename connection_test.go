@@ -12,4 +12,5 @@ func TestConfig_ConnectionUrl(t *testing.T) {
 		t.Fatal("must be an error")
 	}
 	fmt.Println(e)
+
 }

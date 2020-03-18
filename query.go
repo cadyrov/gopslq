@@ -10,10 +10,9 @@ import (
 )
 
 type Queryer interface {
-	Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.IError)
-	Exec(query string, args ...interface{}) (row sql.Result, e goerr.IError)
-	QueryRow(query string, args ...interface{}) (rows *sql.Rows, e goerr.IError)
-	Close() error
+	Query(query string, args ...interface{}) (*sql.Rows, goerr.IError)
+	Exec(query string, args ...interface{}) (sql.Result, goerr.IError)
+	QueryRow(query string, args ...interface{}) (*sql.Row, goerr.IError)
 }
 
 type DB struct {
@@ -63,7 +62,7 @@ func (b *Tx) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IE
 	return
 }
 
-func (b *DB) Begin(query string, args ...interface{}) (tx *Tx, e goerr.IError) {
+func (b *DB) Begin() (tx *Tx, e goerr.IError) {
 	if b.DB == nil {
 		e = goerr.New(" Queryer is nil ")
 		return

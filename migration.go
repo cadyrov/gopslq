@@ -22,3 +22,18 @@ func (m *Migration) Down(q Queryer) (e goerr.IError) {
 	_, e = q.Exec(m.DownSql)
 	return
 }
+
+func CreateMigrationTable(q Queryer) (e goerr.IError) {
+	_, e = q.Exec(sqlCreateTableMigration())
+	return
+}
+
+func sqlCreateTableMigration() string {
+	return `CREATE TABLE IF NOT EXISTS migration
+	(
+		version  text NOT NULL PRIMARY KEY,
+		apply_time  int       NOT NULL,
+	);
+	create index on migration (apply_time);
+	`
+}

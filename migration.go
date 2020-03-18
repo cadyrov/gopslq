@@ -6,7 +6,7 @@ import (
 )
 
 type Migration struct {
-	Name    string
+	Name    string `json:"-"`
 	UpSql   string `json:"upSql"`
 	DownSql string `json:"upSql"`
 }

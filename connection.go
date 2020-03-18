@@ -17,7 +17,7 @@ func (c *Config) Connect() (db *DB, e goerr.IError) {
 	if err != nil {
 		e = goerr.New(err.Error())
 	}
-	db = &DB{dbPs}
+	db = &DB{false, dbPs}
 	return
 }
 

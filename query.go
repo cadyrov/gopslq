@@ -144,7 +144,7 @@ func logQuery(statement string, args ...interface{}) {
 	pieces := strings.Split(statement, "?")
 	for i := range pieces {
 		if i < (len(pieces) - 1) {
-			pieces[i] += fmt.Sprintf("\"%v\"", args[i])
+			pieces[i] += fmt.Sprintf("'%v'", args[i])
 		}
 	}
 	log.Println(strings.Join(pieces, ""))

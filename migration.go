@@ -1,8 +1,12 @@
 package gopsql
 
-import "github.com/cadyrov/goerr"
+import (
+	"github.com/cadyrov/goerr"
+	"time"
+)
 
 type Migration struct {
+	Name    string
 	UpSql   string `json:"upSql"`
 	DownSql string `json:"upSql"`
 }
@@ -12,6 +16,10 @@ func (m *Migration) Up(q Queryer) (e goerr.IError) {
 		return
 	}
 	_, e = q.Exec(m.UpSql)
+	if e != nil {
+		return
+	}
+	_, e = q.Exec(sqlAddMigration(), m.Name, time.Now().UnixNano()/int64(time.Millisecond))
 	return
 }
 
@@ -20,6 +28,10 @@ func (m *Migration) Down(q Queryer) (e goerr.IError) {
 		return
 	}
 	_, e = q.Exec(m.DownSql)
+	if e != nil {
+		return
+	}
+	_, e = q.Exec(sqlDropMigration(), m.Name)
 	return
 }
 
@@ -35,5 +47,17 @@ func sqlCreateTableMigration() string {
 		apply_time  int       NOT NULL
 	);
 	create index on migration (apply_time);
+	`
+}
+
+func sqlAddMigration() string {
+	return `
+		INSERT INTO migrations (version, apply_tyme) values (?, ?);
+	`
+}
+
+func sqlDropMigration() string {
+	return `
+		DELETE FROM migrations WHERE version = ?;
 	`
 }

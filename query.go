@@ -10,9 +10,9 @@ import (
 )
 
 type Queryer interface {
-	Query(query string, args ...interface{}) (*sql.Rows, error)
-	Exec(query string, args ...interface{}) (sql.Result, error)
-	QueryRow(query string, args ...interface{}) *sql.Row
+	Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.IError)
+	Exec(query string, args ...interface{}) (row sql.Result, e goerr.IError)
+	QueryRow(query string, args ...interface{}) (rows *sql.Rows, e goerr.IError)
 	Close() error
 }
 

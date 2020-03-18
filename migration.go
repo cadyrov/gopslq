@@ -52,12 +52,12 @@ func sqlCreateTableMigration() string {
 
 func sqlAddMigration() string {
 	return `
-		INSERT INTO migrations (version, apply_tyme) values (?, ?);
+		INSERT INTO migration (version, apply_tyme) values (?, ?);
 	`
 }
 
 func sqlDropMigration() string {
 	return `
-		DELETE FROM migrations WHERE version = ?;
+		DELETE FROM migration WHERE version = ?;
 	`
 }

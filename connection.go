@@ -8,15 +8,16 @@ import (
 	"net/http"
 )
 
-func (c *Config) Connect() (db *sql.DB, e goerr.IError) {
+func (c *Config) Connect() (db *DB, e goerr.IError) {
 	cu, e := c.ConnectionUrl()
 	if e != nil {
 		return
 	}
-	db, err := sql.Open("postgres", cu)
+	dbPs, err := sql.Open("postgres", cu)
 	if err != nil {
 		e = goerr.New(err.Error())
 	}
+	db = &DB{dbPs}
 	return
 }
 

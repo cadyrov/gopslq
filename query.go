@@ -16,10 +16,12 @@ type Queryer interface {
 }
 
 type DB struct {
+	Debug bool
 	*sql.DB
 }
 
 type Tx struct {
+	Debug bool
 	*sql.Tx
 }
 
@@ -28,7 +30,9 @@ func (b *Tx) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.I
 		e = goerr.New(" Queryer is nil ")
 		return
 	}
-	logQuery(query, args...)
+	if b.Debug == true {
+		logQuery(query, args...)
+	}
 	rows, err := b.Tx.Query(prepare(query), args...)
 	if err != nil {
 		e = goerr.New(err.Error())
@@ -41,7 +45,9 @@ func (b *Tx) QueryRow(query string, args ...interface{}) (row *sql.Row, e goerr.
 		e = goerr.New(" Queryer is nil ")
 		return
 	}
-	logQuery(query, args...)
+	if b.Debug == true {
+		logQuery(query, args...)
+	}
 	row = b.Tx.QueryRow(prepare(query), args...)
 	if row == nil {
 		e = goerr.New("no data")
@@ -54,7 +60,9 @@ func (b *Tx) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IE
 		e = goerr.New(" Queryer is nil ")
 		return
 	}
-	logQuery(query, args...)
+	if b.Debug == true {
+		logQuery(query, args...)
+	}
 	res, err := b.Tx.Exec(prepare(query), args...)
 	if err != nil {
 		e = goerr.New(err.Error())
@@ -72,7 +80,7 @@ func (b *DB) Begin() (tx *Tx, e goerr.IError) {
 		e = goerr.New(err.Error())
 		return
 	}
-	tx = &Tx{transaction}
+	tx = &Tx{b.Debug, transaction}
 	return
 }
 
@@ -81,7 +89,9 @@ func (b *DB) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.I
 		e = goerr.New(" Queryer is nil ")
 		return
 	}
-	logQuery(query, args...)
+	if b.Debug == true {
+		logQuery(query, args...)
+	}
 	rows, err := b.DB.Query(prepare(query), args...)
 	if err != nil {
 		e = goerr.New(err.Error())
@@ -94,7 +104,9 @@ func (b *DB) QueryRow(query string, args ...interface{}) (row *sql.Row, e goerr.
 		e = goerr.New(" Queryer is nil ")
 		return
 	}
-	logQuery(query, args...)
+	if b.Debug == true {
+		logQuery(query, args...)
+	}
 	row = b.DB.QueryRow(prepare(query), args...)
 	if row == nil {
 		e = goerr.New("no data")
@@ -107,7 +119,9 @@ func (b *DB) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IE
 		e = goerr.New(" Queryer is nil ")
 		return
 	}
-	logQuery(query, args...)
+	if b.Debug == true {
+		logQuery(query, args...)
+	}
 	res, err := b.DB.Exec(prepare(query), args...)
 	if err != nil {
 		e = goerr.New(err.Error())

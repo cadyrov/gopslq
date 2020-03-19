@@ -3,10 +3,12 @@ package gopsql
 import "fmt"
 
 type Builder struct {
-	sqlString string
-	params    []interface{}
-	limit     int
-	offset    int
+	selectString string
+	selectParams []interface{}
+	sqlString    string
+	params       []interface{}
+	limit        int
+	offset       int
 }
 
 func NewB() *Builder {
@@ -18,8 +20,13 @@ func (b *Builder) Add(statement string, args ...interface{}) {
 	b.params = append(b.params, args...)
 }
 
+func (b *Builder) Select(statement string, args ...interface{}) {
+	b.selectString = statement
+	b.selectParams = append(make([]interface{}, 0), args...)
+}
+
 func (b *Builder) RawSql() string {
-	sql := b.sqlString
+	sql := b.selectString + " " + b.sqlString
 	if b.limit > 0 {
 		sql += fmt.Sprintf(" LIMIT %d", b.limit)
 	}
@@ -30,7 +37,10 @@ func (b *Builder) RawSql() string {
 }
 
 func (b *Builder) Values() []interface{} {
-	return b.params
+	res := make([]interface{}, 0)
+	res = append(res, b.selectParams...)
+	res = append(res, b.params...)
+	return res
 }
 
 func (b *Builder) Pagination(limit int, offset int) {

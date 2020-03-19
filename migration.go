@@ -24,7 +24,7 @@ func (m *Migration) Up(q Queryer) (e goerr.IError) {
 }
 
 func (m *Migration) Down(q Queryer) (e goerr.IError) {
-	if m.UpSql == "" {
+	if m.DownSql == "" {
 		return
 	}
 	_, e = q.Exec(m.DownSql)

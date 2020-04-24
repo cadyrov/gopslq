@@ -11,7 +11,7 @@ type Builder struct {
 	offset       int
 }
 
-func NewB() *Builder {
+func NewBuilder() *Builder {
 	return &Builder{}
 }
 

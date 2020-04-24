@@ -26,7 +26,12 @@ func (b *Builder) Select(statement string, args ...interface{}) {
 }
 
 func (b *Builder) RawSql() string {
-	sql := "SELECT " + b.selectString + " " + b.sqlString
+	
+	var sql string 
+	if b.selectString != "" {
+		sql +=  "SELECT " + b.selectString
+	}
+	sql += " " + b.sqlString
 	if b.limit > 0 {
 		sql += fmt.Sprintf(" LIMIT %d", b.limit)
 	}

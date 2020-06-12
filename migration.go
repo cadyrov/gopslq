@@ -8,7 +8,7 @@ import (
 type Migration struct {
 	Name    string `json:"-" yaml:"-"`
 	UpSql   string `json:"upSql" yaml:"upSql"`
-	DownSql string `json:"downSql" yaml:"upSql"`
+	DownSql string `json:"downSql" yaml:"downSql"`
 }
 
 func (m *Migration) Up(q Queryer) (e goerr.IError) {

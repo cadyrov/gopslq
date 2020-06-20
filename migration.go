@@ -6,30 +6,32 @@ import (
 )
 
 type Migration struct {
-	Name    string `json:"-"`
-	UpSql   string `json:"upSql"`
-	DownSql string `json:"downSql"`
+	Name    string   `json:"-"`
+	UpSql   []string `json:"upSql"`
+	DownSql []string `json:"downSql"`
 }
 
 func (m *Migration) Up(q Queryer) (e goerr.IError) {
-	if m.UpSql == "" {
-		return
-	}
-	_, e = q.Exec(m.UpSql)
-	if e != nil {
-		return
+	for i := range m.UpSql {
+		if m.UpSql[i] == "" {
+			continue
+		}
+		if _, e = q.Exec(m.UpSql[i]); e != nil {
+			return
+		}
 	}
 	_, e = q.Exec(sqlAddMigration(), m.Name, time.Now().UnixNano()/int64(time.Second))
 	return
 }
 
 func (m *Migration) Down(q Queryer) (e goerr.IError) {
-	if m.DownSql == "" {
-		return
-	}
-	_, e = q.Exec(m.DownSql)
-	if e != nil {
-		return
+	for i := range m.DownSql {
+		if m.DownSql[i] == "" {
+			continue
+		}
+		if _, e = q.Exec(m.DownSql[i]); e != nil {
+			return
+		}
 	}
 	_, e = q.Exec(sqlDropMigration(), m.Name)
 	return

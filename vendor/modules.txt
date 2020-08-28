@@ -1,0 +1,8 @@
+# github.com/cadyrov/goerr v1.0.4
+## explicit
+github.com/cadyrov/goerr
+# github.com/lib/pq v1.7.0
+## explicit
+github.com/lib/pq
+github.com/lib/pq/oid
+github.com/lib/pq/scram

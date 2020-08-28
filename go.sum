@@ -1,0 +1,4 @@
+github.com/cadyrov/goerr v1.0.4 h1:mrNFo8KxNlWkicj/WNaqaeHhd8SM+WWgcnEfCTyGkUU=
+github.com/cadyrov/goerr v1.0.4/go.mod h1:zZZetB2ECHMm78vmCGnca6RzxWyCRePfmlW/kbBOIc0=
+github.com/lib/pq v1.7.0 h1:h93mCPfUSkaul3Ka/VG8uZdmW1uMHDGxzu0NWHuJmHY=
+github.com/lib/pq v1.7.0/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=

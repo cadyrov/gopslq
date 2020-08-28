@@ -121,7 +121,7 @@ ORDER BY a.attnum;`, schema, table)
 		}
 
 		json := SnakeToCamel(column.Name, false)
-		column.ModelName = SnakeToCamel(column.Name, true)
+		column.ModelName = SnakeToCamelWithId(column.Name, true)
 		column.Tags = fmt.Sprintf(`%ccolumn:"%s" json:"%s"%c`, '`', column.Name, json, '`')
 
 		switch {
@@ -367,7 +367,24 @@ func SnakeToCamel(value string, firstTitle bool) (res string) {
 		} else {
 			res += strings.Title(splitted[i])
 		}
-
 	}
+
+	return
+}
+
+func SnakeToCamelWithId(value string, firstTitle bool) (res string) {
+	splitted := strings.Split(strings.Trim(value, ""), "_")
+
+	for i := range splitted {
+
+		if strings.EqualFold(splitted[i], "id") {
+			res += strings.ToUpper(splitted[i])
+		} else if firstTitle == false && i == 0 {
+			res += splitted[i]
+		} else {
+			res += strings.Title(splitted[i])
+		}
+	}
+
 	return
 }

@@ -11,6 +11,10 @@ import (
 	"text/template"
 )
 
+const (
+	typeString = "string"
+)
+
 type Column struct {
 	Name            string
 	ModelName       string
@@ -30,7 +34,7 @@ type Column struct {
 	UniqueIndexName *string
 }
 
-// Array of columns
+// Array of columns.
 type Columns []Column
 type Imports []string
 
@@ -40,6 +44,7 @@ func (im *Imports) Add(value string) {
 			return
 		}
 	}
+
 	*im = append(*im, value)
 }
 
@@ -58,11 +63,14 @@ func parse(rows *sql.Rows) (column *Column, e error) {
 		&column.HasUniqueIndex,
 		&column.UniqueIndexName,
 	)
+
 	return
 }
 
-// Get table columns from db
+// Get table columns from db.
 func GetTableColumns(q Queryer, schema string, table string) (columns *Columns, imports *Imports, e error) {
+	var hasPrimary bool
+
 	query := fmt.Sprintf(`
 SELECT a.attname                                                                       AS column_name,
        format_type(a.atttypid, a.atttypmod)                                            AS data_type,
@@ -105,24 +113,28 @@ WHERE a.attnum > 0
 GROUP BY a.attname, a.atttypid, a.attrelid, a.atttypmod, a.attnotnull, s.nspname, t.relname, ic.column_default,
          ic.table_schema, ic.table_name, ic.column_name, a.attnum, t.oid, ic.ordinal_position
 ORDER BY a.attnum;`, schema, table)
-
 	rows, e := q.Query(query)
+
 	if e != nil {
 		return
 	}
+
 	columns = &Columns{}
-	var hasPrimary bool
 	imports = &Imports{}
+
 	for rows.Next() {
 		column, err := parse(rows)
 		if err != nil {
 			e = err
+
 			return
 		}
 
 		json := SnakeToCamel(column.Name, false)
-		column.ModelName = SnakeToCamelWithId(column.Name, true)
+		column.ModelName = SnakeToCamelWithGOData(column.Name, true)
 		column.Tags = fmt.Sprintf(`%ccolumn:"%s" json:"%s"%c`, '`', column.Name, json, '`')
+
+		uncnownColumnErr := fmt.Errorf("unknown column type: %s", column.DataType)
 
 		switch {
 		case column.DataType == "bigint":
@@ -130,7 +142,7 @@ ORDER BY a.attnum;`, schema, table)
 		case column.DataType == "integer":
 			column.ModelType = "int"
 		case column.DataType == "text":
-			column.ModelType = "string"
+			column.ModelType = typeString
 		case column.DataType == "double precision":
 			column.ModelType = "float64"
 		case column.DataType == "boolean":
@@ -139,11 +151,13 @@ ORDER BY a.attnum;`, schema, table)
 			column.ModelType = "[]interface{}"
 		case column.DataType == "json":
 			column.ModelType = "json.RawMessage"
+
 			imports.Add(`"encoding/json"`)
 		case column.DataType == "smallint":
 			column.ModelType = "int16"
 		case column.DataType == "date":
 			column.ModelType = "time.Time"
+
 			imports.Add(`"time"`)
 		case strings.Contains(column.DataType, "character varying"):
 			column.ModelType = "string"
@@ -153,28 +167,35 @@ ORDER BY a.attnum;`, schema, table)
 			column.ModelType = "string"
 		case column.DataType == "jsonb":
 			column.ModelType = "json.RawMessage"
+
 			imports.Add(`"encoding/json"`)
 		case column.DataType == "uuid[]":
 			column.ModelType = "[]string"
 			column.IsArray = true
+
 			imports.Add(`"github.com/lib/pq"`)
 		case column.DataType == "integer[]":
 			column.ModelType = "[]int64"
 			column.IsArray = true
+
 			imports.Add(`"github.com/lib/pq"`)
 		case column.DataType == "bigint[]":
 			column.ModelType = "[]int64"
 			column.IsArray = true
+
 			imports.Add(`"github.com/lib/pq"`)
 		case column.DataType == "text[]":
 			column.ModelType = "[]string"
 			column.IsArray = true
+
 			imports.Add(`"github.com/lib/pq"`)
 		case strings.Contains(column.DataType, "timestamp"):
 			column.ModelType = "time.Time"
+
 			imports.Add(`"time"`)
 		default:
-			e = errors.New(fmt.Sprintf("unknown column type: %s", column.DataType))
+			e = uncnownColumnErr
+
 			return
 		}
 
@@ -182,9 +203,10 @@ ORDER BY a.attnum;`, schema, table)
 			column.ModelType = "*" + column.ModelType
 		}
 
-		if column.IsPrimaryKey == true {
+		if column.IsPrimaryKey {
 			hasPrimary = true
 		}
+
 		*columns = append(*columns, *column)
 	}
 
@@ -196,16 +218,20 @@ ORDER BY a.attnum;`, schema, table)
 					(*columns)[key].ModelType = (*columns)[key].ModelType[1:]
 					hasPrimary = true
 				}
+
 				break
 			}
 		}
+
 		if !hasPrimary {
 			var uniqueIndexName *string
+
 			for key, column := range *columns {
 				if column.HasUniqueIndex {
 					if uniqueIndexName == nil {
 						uniqueIndexName = column.UniqueIndexName
 					}
+
 					if *uniqueIndexName == *column.UniqueIndexName {
 						(*columns)[key].IsPrimaryKey = true
 						if (*columns)[key].ModelType[0] == '*' {
@@ -220,26 +246,31 @@ ORDER BY a.attnum;`, schema, table)
 }
 
 func CreateFile(schema string, table string, path string) (*os.File, string, error) {
-	name := fmt.Sprintf("%s", table)
+	name := table
+
 	if schema != "public" {
 		name = fmt.Sprintf("%s_%s", schema, table)
 	}
-	var filePath string
+
+	filePath := fmt.Sprintf("%s.go", name)
+
 	if path != "" {
-		folderPath := fmt.Sprintf(path)
+		folderPath := path
 		err := os.MkdirAll(folderPath, os.ModePerm)
+
 		if err != nil {
 			return nil, "", err
 		}
+
 		filePath = fmt.Sprintf("%s/%s.go", folderPath, name)
-	} else {
-		filePath = fmt.Sprintf("%s.go", name)
 	}
 
 	f, err := os.Create(filePath)
+
 	if err != nil {
 		return nil, "", err
 	}
+
 	return f, filePath, nil
 }
 
@@ -254,10 +285,15 @@ func MakeModel(db Queryer, path string, schema string, table string, templatePat
 		`"github.com/cadyrov/gopsql"`,
 	}
 
+	var (
+		tableFoundErr  = errors.New("No table found or no columns in table ")
+		tableNameEmpty = errors.New("table name is empty")
+	)
+
 	var name = table
 
 	if table == "" {
-		return errors.New("table name is empty")
+		return tableFoundErr
 	}
 
 	tmpl := template.New("model")
@@ -280,7 +316,7 @@ func MakeModel(db Queryer, path string, schema string, table string, templatePat
 	}
 
 	if columns == nil || len(*columns) == 0 {
-		return errors.New("No table found or no columns in table ")
+		return tableNameEmpty
 	}
 
 	for _, imp := range *tableImport {
@@ -299,6 +335,7 @@ func MakeModel(db Queryer, path string, schema string, table string, templatePat
 	for _, column := range *columns {
 		if column.IsPrimaryKey && column.Sequence != nil {
 			hasSequence = true
+
 			break
 		}
 	}
@@ -311,12 +348,15 @@ func MakeModel(db Queryer, path string, schema string, table string, templatePat
 
 	primaryColumns := Columns{}
 	nonPrimaryColumns := Columns{}
+
 	for i := range *columns {
 		if (*columns)[i].IsPrimaryKey {
 			primaryColumns = append(primaryColumns, (*columns)[i])
-		} else {
-			nonPrimaryColumns = append(nonPrimaryColumns, (*columns)[i])
+
+			continue
 		}
+
+		nonPrimaryColumns = append(nonPrimaryColumns, (*columns)[i])
 	}
 
 	// Parse template to file
@@ -345,24 +385,27 @@ func MakeModel(db Queryer, path string, schema string, table string, templatePat
 	}
 
 	err = file.Close()
+
 	if err != nil {
 		return err
 	}
 
 	cmd := exec.Command("go", "fmt", path)
 	err = cmd.Run()
+
 	if err != nil {
 		return err
 	}
 
 	fmt.Printf("file created: %s", path)
+
 	return nil
 }
 
 func SnakeToCamel(value string, firstTitle bool) (res string) {
 	splitted := strings.Split(strings.Trim(value, ""), "_")
 	for i := range splitted {
-		if firstTitle == false && i == 0 {
+		if !firstTitle && i == 0 {
 			res += splitted[i]
 		} else {
 			res += strings.Title(splitted[i])
@@ -372,18 +415,26 @@ func SnakeToCamel(value string, firstTitle bool) (res string) {
 	return
 }
 
-func SnakeToCamelWithId(value string, firstTitle bool) (res string) {
+func SnakeToCamelWithGOData(value string, firstTitle bool) (res string) {
 	splitted := strings.Split(strings.Trim(value, ""), "_")
 
 	for i := range splitted {
-
-		if strings.EqualFold(splitted[i], "id") {
+		if strings.EqualFold(splitted[i], "id") ||
+			strings.EqualFold(splitted[i], "db") ||
+			strings.EqualFold(splitted[i], "sql") ||
+			strings.EqualFold(splitted[i], "url") {
 			res += strings.ToUpper(splitted[i])
-		} else if firstTitle == false && i == 0 {
-			res += splitted[i]
-		} else {
-			res += strings.Title(splitted[i])
+
+			continue
 		}
+
+		if !firstTitle && i == 0 {
+			res += splitted[i]
+
+			continue
+		}
+
+		res += strings.Title(splitted[i])
 	}
 
 	return

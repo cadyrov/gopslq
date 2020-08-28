@@ -7,38 +7,45 @@ import (
 
 type Migration struct {
 	Name    string   `json:"-" yaml:"-"`
-	UpSql   []string `json:"upSql" yaml:"upSql"`
-	DownSql []string `json:"downSql" yaml:"downSql"`
+	UpSQL   []string `json:"upSql" yaml:"upSql"`
+	DownSQL []string `json:"downSql" yaml:"downSql"`
 }
 
 func (m *Migration) Up(q Queryer) (e goerr.IError) {
-	for i := range m.UpSql {
-		if m.UpSql[i] == "" {
+	for i := range m.UpSQL {
+		if m.UpSQL[i] == "" {
 			continue
 		}
-		if _, e = q.Exec(m.UpSql[i]); e != nil {
+
+		if _, e = q.Exec(m.UpSQL[i]); e != nil {
 			return
 		}
 	}
+
 	_, e = q.Exec(sqlAddMigration(), m.Name, time.Now().UnixNano()/int64(time.Second))
+
 	return
 }
 
 func (m *Migration) Down(q Queryer) (e goerr.IError) {
-	for i := range m.DownSql {
-		if m.DownSql[i] == "" {
+	for i := range m.DownSQL {
+		if m.DownSQL[i] == "" {
 			continue
 		}
-		if _, e = q.Exec(m.DownSql[i]); e != nil {
+
+		if _, e = q.Exec(m.DownSQL[i]); e != nil {
 			return
 		}
 	}
+
 	_, e = q.Exec(sqlDropMigration(), m.Name)
+
 	return
 }
 
 func CreateMigrationTable(q Queryer) (e goerr.IError) {
 	_, e = q.Exec(sqlCreateTableMigration())
+
 	return
 }
 

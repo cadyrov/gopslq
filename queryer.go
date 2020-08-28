@@ -28,104 +28,140 @@ type Tx struct {
 func (b *Tx) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.IError) {
 	if b.Tx == nil {
 		e = goerr.New(" Queryer is nil ")
+
 		return
 	}
-	if b.Debug == true {
+
+	if b.Debug {
 		logQuery(query, args...)
 	}
+
 	rows, err := b.Tx.Query(prepare(query), args...)
+
 	if err != nil {
 		e = goerr.New(err.Error())
 	}
+
 	return
 }
 
 func (b *Tx) QueryRow(query string, args ...interface{}) (row *sql.Row, e goerr.IError) {
 	if b.Tx == nil {
 		e = goerr.New(" Queryer is nil ")
+
 		return
 	}
-	if b.Debug == true {
+
+	if b.Debug {
 		logQuery(query, args...)
 	}
+
 	row = b.Tx.QueryRow(prepare(query), args...)
+
 	if row == nil {
 		e = goerr.New("no data")
 	}
+
 	return
 }
 
 func (b *Tx) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IError) {
 	if b.Tx == nil {
 		e = goerr.New(" Queryer is nil ")
+
 		return
 	}
-	if b.Debug == true {
+
+	if b.Debug {
 		logQuery(query, args...)
 	}
+
 	res, err := b.Tx.Exec(prepare(query), args...)
+
 	if err != nil {
 		e = goerr.New(err.Error())
 	}
+
 	return
 }
 
 func (b *DB) Begin() (tx *Tx, e goerr.IError) {
 	if b.DB == nil {
 		e = goerr.New(" Queryer is nil ")
+
 		return
 	}
+
 	transaction, err := b.DB.Begin()
+
 	if err != nil {
 		e = goerr.New(err.Error())
+
 		return
 	}
+
 	tx = &Tx{b.Debug, transaction}
+
 	return
 }
 
 func (b *DB) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.IError) {
 	if b.DB == nil {
 		e = goerr.New(" Queryer is nil ")
+
 		return
 	}
-	if b.Debug == true {
+
+	if b.Debug {
 		logQuery(query, args...)
 	}
+
 	rows, err := b.DB.Query(prepare(query), args...)
+
 	if err != nil {
 		e = goerr.New(err.Error())
 	}
+
 	return
 }
 
 func (b *DB) QueryRow(query string, args ...interface{}) (row *sql.Row, e goerr.IError) {
 	if b.DB == nil {
 		e = goerr.New(" Queryer is nil ")
+
 		return
 	}
-	if b.Debug == true {
+
+	if b.Debug {
 		logQuery(query, args...)
 	}
+
 	row = b.DB.QueryRow(prepare(query), args...)
+
 	if row == nil {
 		e = goerr.New("no data")
 	}
+
 	return
 }
 
 func (b *DB) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IError) {
 	if b.DB == nil {
 		e = goerr.New(" Queryer is nil ")
+
 		return
 	}
-	if b.Debug == true {
+
+	if b.Debug {
 		logQuery(query, args...)
 	}
+
 	res, err := b.DB.Exec(prepare(query), args...)
+
 	if err != nil {
 		e = goerr.New(err.Error())
 	}
+
 	return
 }
 
@@ -136,7 +172,9 @@ func prepare(statement string) (prepared string) {
 			pieces[i] += "$" + strconv.Itoa(i+1)
 		}
 	}
+
 	prepared = strings.Join(pieces, "")
+
 	return
 }
 
@@ -147,6 +185,6 @@ func logQuery(statement string, args ...interface{}) {
 			pieces[i] += fmt.Sprintf("'%v'", args[i])
 		}
 	}
+
 	log.Println(strings.Join(pieces, ""))
-	return
 }

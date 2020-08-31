@@ -1,4 +1,4 @@
-module gopsql/m/v1
+module github.com/cadyrov/gopsql
 
 go 1.14
 

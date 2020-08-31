@@ -1,4 +1,4 @@
-module gopsql/m/v2
+module gopsql/m/v1
 
 go 1.14
 

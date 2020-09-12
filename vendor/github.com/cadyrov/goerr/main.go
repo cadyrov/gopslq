@@ -11,51 +11,59 @@ type IError interface {
 	GetDetails() []IError
 	PushDetail(IError)
 	GetMessage() string
-	Http(code int) IError
+	HTTP(code int) IError
 }
 
-type appError struct {
-	code    int
+type AppError struct {
+	Code    int      `json:"code"`
 	Message string   `json:"message"`
 	Detail  []IError `json:"detail,omitempty"`
 }
 
-func (e *appError) PushDetail(ae IError) {
+func (e *AppError) PushDetail(ae IError) {
 	e.Detail = append(e.Detail, ae)
 }
 
-func (e *appError) Error() (er string) {
-	er += fmt.Sprintf("Code: %v; ", e.code)
+func (e *AppError) Error() (er string) {
+	er += fmt.Sprintf("Code: %v; ", e.Code)
+
 	er += "Msg: " + e.Message + ";  "
+
 	if len(e.GetDetails()) == 0 {
 		return
 	}
+
 	er += " Details: {"
+
 	for idx := range e.GetDetails() {
 		er += e.GetDetails()[idx].Error()
 	}
+
 	er += "}"
-	return
+
+	return er
 }
 
-func (e *appError) GetCode() int {
-	return e.code
+func (e *AppError) GetCode() int {
+	return e.Code
 }
 
-func (e *appError) GetMessage() string {
+func (e *AppError) GetMessage() string {
 	return e.Message
 }
 
-func (e *appError) GetDetails() []IError {
+func (e *AppError) GetDetails() []IError {
 	return e.Detail
 }
 
-func (e *appError) Http(code int) IError {
-	e.code = code
+func (e *AppError) HTTP(code int) IError {
+	e.Code = code
+
 	return e
 }
 
-func New(message string) (e IError) {
-	e = &appError{code: http.StatusInternalServerError, Message: message}
-	return
+func New(message string) IError {
+	e := &AppError{Code: http.StatusInternalServerError, Message: message}
+
+	return e
 }

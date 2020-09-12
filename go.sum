@@ -36,6 +36,8 @@ github.com/bombsimon/wsl/v3 v3.1.0 h1:E5SRssoBgtVFPcYWUOFJEcgaySgdtTNYzsSKDOY7ss
 github.com/bombsimon/wsl/v3 v3.1.0/go.mod h1:st10JtZYLE4D5sC7b8xV4zTKZwAQjCH/Hy2Pm1FNZIc=
 github.com/cadyrov/goerr v1.0.4 h1:mrNFo8KxNlWkicj/WNaqaeHhd8SM+WWgcnEfCTyGkUU=
 github.com/cadyrov/goerr v1.0.4/go.mod h1:zZZetB2ECHMm78vmCGnca6RzxWyCRePfmlW/kbBOIc0=
+github.com/cadyrov/goerr v1.0.7 h1:/6tjP7QxvRWGTP2Ws/SemOhJIME9NTQf2hJ1/XpMKKI=
+github.com/cadyrov/goerr v1.0.7/go.mod h1:zZZetB2ECHMm78vmCGnca6RzxWyCRePfmlW/kbBOIc0=
 github.com/cespare/xxhash v1.1.0/go.mod h1:XrSqR1VqqWfGrhpAt58auRo0WTKS1nRRg3ghfAqPWnc=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/coreos/bbolt v1.3.2/go.mod h1:iRUV2dpdMOn7Bo10OQBFzIJO9kkE559Wcmn+qkEiiKk=

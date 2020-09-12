@@ -15,6 +15,12 @@ const (
 	typeString = "string"
 )
 
+var (
+	ErrTableFound     = errors.New("no table found or no columns in table ")
+	ErrTableNameEmpty = errors.New("table name is empty")
+	ErrUncnownColumn  = fmt.Errorf("unknown column type")
+)
+
 type Column struct {
 	IsNullable      bool
 	IsArray         bool
@@ -34,8 +40,8 @@ type Column struct {
 	Import          []string
 }
 
-// Array of columns.
 type Columns []Column
+
 type Imports []string
 
 func (im *Imports) Add(value string) {
@@ -134,8 +140,6 @@ ORDER BY a.attnum;`, schema, table)
 		column.ModelName = SnakeToCamelWithGOData(column.Name, true)
 		column.Tags = fmt.Sprintf(`%ccolumn:"%s" json:"%s"%c`, '`', column.Name, json, '`')
 
-		uncnownColumnErr := fmt.Errorf("unknown column type: %s", column.DataType)
-
 		switch {
 		case column.DataType == "bigint":
 			column.ModelType = "int64"
@@ -194,7 +198,7 @@ ORDER BY a.attnum;`, schema, table)
 
 			imports.Add(`"time"`)
 		default:
-			e = uncnownColumnErr
+			e = ErrUncnownColumn
 
 			return
 		}
@@ -222,27 +226,33 @@ ORDER BY a.attnum;`, schema, table)
 				break
 			}
 		}
+	}
 
-		if !hasPrimary {
-			var uniqueIndexName *string
+	if hasPrimary {
+		return columns, imports, e
+	}
 
-			for key, column := range *columns {
-				if column.HasUniqueIndex {
-					if uniqueIndexName == nil {
-						uniqueIndexName = column.UniqueIndexName
-					}
+	var uniqueIndexName *string
 
-					if *uniqueIndexName == *column.UniqueIndexName {
-						(*columns)[key].IsPrimaryKey = true
-						if (*columns)[key].ModelType[0] == '*' {
-							(*columns)[key].ModelType = (*columns)[key].ModelType[1:]
-						}
-					}
-				}
+	for key, column := range *columns {
+		if !column.HasUniqueIndex {
+			continue
+		}
+
+		if uniqueIndexName == nil {
+			uniqueIndexName = column.UniqueIndexName
+		}
+
+		if *uniqueIndexName == *column.UniqueIndexName {
+			(*columns)[key].IsPrimaryKey = true
+
+			if (*columns)[key].ModelType[0] == '*' {
+				(*columns)[key].ModelType = (*columns)[key].ModelType[1:]
 			}
 		}
 	}
-	return
+
+	return columns, imports, e
 }
 
 func CreateFile(schema string, table string, path string) (*os.File, string, error) {
@@ -256,8 +266,8 @@ func CreateFile(schema string, table string, path string) (*os.File, string, err
 
 	if path != "" {
 		folderPath := path
-		err := os.MkdirAll(folderPath, os.ModePerm)
 
+		err := os.MkdirAll(folderPath, os.ModePerm)
 		if err != nil {
 			return nil, "", err
 		}
@@ -266,7 +276,6 @@ func CreateFile(schema string, table string, path string) (*os.File, string, err
 	}
 
 	f, err := os.Create(filePath)
-
 	if err != nil {
 		return nil, "", err
 	}
@@ -275,7 +284,6 @@ func CreateFile(schema string, table string, path string) (*os.File, string, err
 }
 
 func MakeModel(db Queryer, path string, schema string, table string, templatePath string) error {
-	// Imports in model file
 	var imports = []string{
 		`"strings"`,
 		`"database/sql"`,
@@ -285,15 +293,8 @@ func MakeModel(db Queryer, path string, schema string, table string, templatePat
 		`"github.com/cadyrov/gopsql"`,
 	}
 
-	var (
-		tableFoundErr  = errors.New("No table found or no columns in table ")
-		tableNameEmpty = errors.New("table name is empty")
-	)
-
-	var name = table
-
 	if table == "" {
-		return tableFoundErr
+		return ErrTableFound
 	}
 
 	tmpl := template.New("model")
@@ -316,7 +317,7 @@ func MakeModel(db Queryer, path string, schema string, table string, templatePat
 	}
 
 	if columns == nil || len(*columns) == 0 {
-		return tableNameEmpty
+		return ErrTableNameEmpty
 	}
 
 	for _, imp := range *tableImport {
@@ -324,11 +325,11 @@ func MakeModel(db Queryer, path string, schema string, table string, templatePat
 	}
 
 	if schema != "public" && schema != "" {
-		name = schema + "_" + table
+		table = schema + "_" + table
 	}
 
 	// To camel case
-	modelName := SnakeToCamel(name, true)
+	modelName := SnakeToCamel(table, true)
 
 	var hasSequence bool
 	// Check for sequence and primary key

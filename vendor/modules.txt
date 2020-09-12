@@ -1,4 +1,4 @@
-# github.com/cadyrov/goerr v1.0.4
+# github.com/cadyrov/goerr v1.0.7
 ## explicit
 github.com/cadyrov/goerr
 # github.com/lib/pq v1.7.0

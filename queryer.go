@@ -38,7 +38,6 @@ func (b *Tx) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.I
 	}
 
 	rows, err := b.Tx.Query(prepare(query), args...)
-
 	if err != nil {
 		e = goerr.New(err.Error())
 	}
@@ -78,7 +77,6 @@ func (b *Tx) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IE
 	}
 
 	res, err := b.Tx.Exec(prepare(query), args...)
-
 	if err != nil {
 		e = goerr.New(err.Error())
 	}
@@ -94,7 +92,6 @@ func (b *DB) Begin() (tx *Tx, e goerr.IError) {
 	}
 
 	transaction, err := b.DB.Begin()
-
 	if err != nil {
 		e = goerr.New(err.Error())
 
@@ -118,7 +115,6 @@ func (b *DB) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.I
 	}
 
 	rows, err := b.DB.Query(prepare(query), args...)
-
 	if err != nil {
 		e = goerr.New(err.Error())
 	}
@@ -158,7 +154,6 @@ func (b *DB) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IE
 	}
 
 	res, err := b.DB.Exec(prepare(query), args...)
-
 	if err != nil {
 		e = goerr.New(err.Error())
 	}

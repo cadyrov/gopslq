@@ -1,9 +1,10 @@
 package gopsql_test
 
 import (
-	"example.com/m/v2"
 	"fmt"
 	"testing"
+
+	"github.com/cadyrov/gopsql"
 )
 
 func TestConfig_ConnectionUrl(t *testing.T) {

@@ -3,10 +3,11 @@ package gopsql
 import (
 	"database/sql"
 	"fmt"
-	"github.com/cadyrov/goerr"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/cadyrov/goerr"
 )
 
 type Queryer interface {

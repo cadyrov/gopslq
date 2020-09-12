@@ -16,22 +16,22 @@ const (
 )
 
 type Column struct {
+	IsNullable      bool
+	IsArray         bool
+	HasUniqueIndex  bool
+	IsPrimaryKey    bool
+	Default         *string
+	Sequence        *string
+	Description     *string
+	UniqueIndexName *string
 	Name            string
 	ModelName       string
-	Default         *string
-	IsNullable      bool
 	DataType        string
 	ModelType       string
 	Schema          string
 	Table           string
-	Sequence        *string
-	Description     *string
-	IsPrimaryKey    bool
 	Tags            string
 	Import          []string
-	IsArray         bool
-	HasUniqueIndex  bool
-	UniqueIndexName *string
 }
 
 // Array of columns.

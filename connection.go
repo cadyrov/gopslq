@@ -3,9 +3,10 @@ package gopsql
 import (
 	"database/sql"
 	"fmt"
+	"net/http"
+
 	"github.com/cadyrov/goerr"
 	_ "github.com/lib/pq" //to work with psql libs.
-	"net/http"
 )
 
 func (c *Config) Connect() (db *DB, e goerr.IError) {

@@ -1,8 +1,9 @@
 package gopsql
 
 import (
-	"github.com/cadyrov/goerr"
 	"time"
+
+	"github.com/cadyrov/goerr"
 )
 
 type Migration struct {

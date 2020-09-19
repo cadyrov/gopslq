@@ -255,35 +255,18 @@ ORDER BY a.attnum;`, schema, table)
 	return columns, imports, e
 }
 
-func CreateFile(schema string, table string, path string) (*os.File, string, error) {
-	name := table
+func CreateFile(filePath string) (*os.File, string, error) {
+	path := fmt.Sprintf("%s.go", filePath)
 
-	if schema != "public" {
-		name = fmt.Sprintf("%s_%s", schema, table)
-	}
-
-	filePath := fmt.Sprintf("%s.go", name)
-
-	if path != "" {
-		folderPath := path
-
-		err := os.MkdirAll(folderPath, os.ModePerm)
-		if err != nil {
-			return nil, "", err
-		}
-
-		filePath = fmt.Sprintf("%s/%s.go", folderPath, name)
-	}
-
-	f, err := os.Create(filePath)
+	f, err := os.Create(path)
 	if err != nil {
 		return nil, "", err
 	}
 
-	return f, filePath, nil
+	return f, path, nil
 }
 
-func MakeModel(db Queryer, path string, schema string, table string, templatePath string) error {
+func MakeModel(db Queryer, filePath string, schema string, table string, templatePath string) error {
 	var imports = []string{
 		`"strings"`,
 		`"database/sql"`,
@@ -342,7 +325,7 @@ func MakeModel(db Queryer, path string, schema string, table string, templatePat
 	}
 
 	// Create file
-	file, path, err := CreateFile(schema, table, path)
+	file, path, err := CreateFile(filePath)
 	if err != nil {
 		return err
 	}

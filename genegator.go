@@ -256,14 +256,12 @@ ORDER BY a.attnum;`, schema, table)
 }
 
 func CreateFile(filePath string) (*os.File, string, error) {
-	path := fmt.Sprintf("%s.go", filePath)
-
-	f, err := os.Create(path)
+	f, err := os.Create(filePath)
 	if err != nil {
 		return nil, "", err
 	}
 
-	return f, path, nil
+	return f, filePath, nil
 }
 
 func MakeModel(db Queryer, filePath string, schema string, table string, templatePath string) error {

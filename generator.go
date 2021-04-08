@@ -18,8 +18,15 @@ const (
 var (
 	ErrTableFound     = errors.New("no table found or no columns in table ")
 	ErrTableNameEmpty = errors.New("table name is empty")
-	ErrUncnownColumn  = fmt.Errorf("unknown column type")
 )
+
+type psqlErr struct {
+	msg string
+}
+
+func (p *psqlErr) Error() string {
+	return p.msg
+}
 
 type Column struct {
 	IsNullable      bool
@@ -198,7 +205,7 @@ ORDER BY a.attnum;`, schema, table)
 
 			imports.Add(`"time"`)
 		default:
-			e = ErrUncnownColumn
+			e = &psqlErr{"unknow type" + column.DataType}
 
 			return
 		}

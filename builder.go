@@ -17,7 +17,9 @@ func NewBuilder() *Builder {
 }
 
 func (b *Builder) Order(statement string) {
-	b.order = "ORDER BY " + statement
+	if len(statement) > 0 {
+		b.order = "ORDER BY " + statement
+	}
 }
 
 func (b *Builder) Add(statement string, args ...interface{}) {

@@ -5,6 +5,7 @@ import "fmt"
 type Builder struct {
 	selectString string
 	selectParams []interface{}
+	order 		 string
 	sqlString    string
 	params       []interface{}
 	limit        int
@@ -13,6 +14,10 @@ type Builder struct {
 
 func NewBuilder() *Builder {
 	return &Builder{}
+}
+
+func (b *Builder) Order(statement string) {
+	b.order = "ORDER BY" + statement
 }
 
 func (b *Builder) Add(statement string, args ...interface{}) {
@@ -34,6 +39,8 @@ func (b *Builder) RawSQL() string {
 	}
 
 	sql += " " + b.sqlString
+
+	sql += " " + b.order
 
 	if b.limit > 0 {
 		sql += fmt.Sprintf(" LIMIT %d", b.limit)

@@ -145,8 +145,12 @@ ORDER BY a.attnum;`, schema, table)
 
 		json := SnakeToCamel(column.Name, false)
 		column.ModelName = SnakeToCamelWithGOData(column.Name, true)
+		desc := ""
+		if column.Description != nil {
+			desc = *column.Description
+		}
 		column.Tags = fmt.Sprintf(`%ccolumn:"%s" json:"%s"  description:"%s"%c`,
-			'`', column.Name, json, column.Description, '`')
+			'`', column.Name, json, desc, '`')
 
 		switch {
 		case column.DataType == "bigint":

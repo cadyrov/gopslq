@@ -145,7 +145,8 @@ ORDER BY a.attnum;`, schema, table)
 
 		json := SnakeToCamel(column.Name, false)
 		column.ModelName = SnakeToCamelWithGOData(column.Name, true)
-		column.Tags = fmt.Sprintf(`%ccolumn:"%s" json:"%s"%c`, '`', column.Name, json, '`')
+		column.Tags = fmt.Sprintf(`%ccolumn:"%s" json:"%s"  description:"%s"%c`,
+			'`', column.Name, json, column.Description, '`')
 
 		switch {
 		case column.DataType == "bigint":
@@ -205,7 +206,7 @@ ORDER BY a.attnum;`, schema, table)
 
 			imports.Add(`"time"`)
 		default:
-			e = &psqlErr{"unknow type" + column.DataType}
+			e = &psqlErr{"unknow type " + column.DataType}
 
 			return
 		}

@@ -281,7 +281,7 @@ func MakeModel(db Queryer, filePath string, schema string, table string, templat
 		`"strings"`,
 		`"database/sql"`,
 		`"net/http"`,
-		`"github.com/cadyrov/goerr"`,
+		`"github.com/cadyrov/goerr/v2"`,
 		`"github.com/cadyrov/govalidation"`,
 		`"github.com/cadyrov/gopsql"`,
 	}

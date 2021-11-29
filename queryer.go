@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/cadyrov/goerr"
+	"github.com/cadyrov/goerr/v2"
 )
 
 type Queryer interface {

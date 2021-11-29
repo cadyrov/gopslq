@@ -3,7 +3,7 @@ package gopsql
 import (
 	"time"
 
-	"github.com/cadyrov/goerr"
+	"github.com/cadyrov/goerr/v2"
 )
 
 type Migration struct {

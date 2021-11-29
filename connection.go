@@ -3,7 +3,7 @@ package gopsql
 import (
 	"database/sql"
 	"fmt"
-	"github.com/cadyrov/goerr"
+	"github.com/cadyrov/goerr/v2"
 
 	_ "github.com/lib/pq" //for psql will work
 )

@@ -44,6 +44,10 @@ func NotFound(err error) IError {
 	return New(http.StatusNotFound, err)
 }
 
+func NotAllowed(err error) IError {
+	return New(http.StatusMethodNotAllowed, err)
+}
+
 func NotAcceptable(err error) IError {
 	return New(http.StatusNotAcceptable, err)
 }

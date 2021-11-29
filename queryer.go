@@ -2,6 +2,7 @@ package gopsql
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -26,9 +27,14 @@ type Tx struct {
 	*sql.Tx
 }
 
+var (
+	ErrQuerierIsNil = errors.New("Queryer is nil ")
+	ErrNoData = errors.New("No data")
+)
+
 func (b *Tx) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.IError) {
 	if b.Tx == nil {
-		e = goerr.New(" Queryer is nil ")
+		e = goerr.Internal(ErrQuerierIsNil)
 
 		return
 	}
@@ -39,7 +45,7 @@ func (b *Tx) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.I
 
 	rows, err := b.Tx.Query(prepare(query), args...)
 	if err != nil {
-		e = goerr.New(err.Error())
+		e = goerr.Internal(err)
 	}
 
 	return
@@ -47,7 +53,7 @@ func (b *Tx) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.I
 
 func (b *Tx) QueryRow(query string, args ...interface{}) (row *sql.Row, e goerr.IError) {
 	if b.Tx == nil {
-		e = goerr.New(" Queryer is nil ")
+		e = goerr.Internal(ErrQuerierIsNil)
 
 		return
 	}
@@ -59,7 +65,7 @@ func (b *Tx) QueryRow(query string, args ...interface{}) (row *sql.Row, e goerr.
 	row = b.Tx.QueryRow(prepare(query), args...)
 
 	if row == nil {
-		e = goerr.New("no data")
+		e = goerr.Internal(ErrNoData)
 	}
 
 	return
@@ -67,7 +73,7 @@ func (b *Tx) QueryRow(query string, args ...interface{}) (row *sql.Row, e goerr.
 
 func (b *Tx) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IError) {
 	if b.Tx == nil {
-		e = goerr.New(" Queryer is nil ")
+		e = goerr.Internal(ErrQuerierIsNil)
 
 		return
 	}
@@ -78,7 +84,7 @@ func (b *Tx) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IE
 
 	res, err := b.Tx.Exec(prepare(query), args...)
 	if err != nil {
-		e = goerr.New(err.Error())
+		e = goerr.Internal(err)
 	}
 
 	return
@@ -86,14 +92,14 @@ func (b *Tx) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IE
 
 func (b *DB) Begin() (tx *Tx, e goerr.IError) {
 	if b.DB == nil {
-		e = goerr.New(" Queryer is nil ")
+		e = goerr.Internal(ErrQuerierIsNil)
 
 		return
 	}
 
 	transaction, err := b.DB.Begin()
 	if err != nil {
-		e = goerr.New(err.Error())
+		e = goerr.Internal(err)
 
 		return
 	}
@@ -105,7 +111,7 @@ func (b *DB) Begin() (tx *Tx, e goerr.IError) {
 
 func (b *DB) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.IError) {
 	if b.DB == nil {
-		e = goerr.New(" Queryer is nil ")
+		e = goerr.Internal(ErrQuerierIsNil)
 
 		return
 	}
@@ -116,7 +122,7 @@ func (b *DB) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.I
 
 	rows, err := b.DB.Query(prepare(query), args...)
 	if err != nil {
-		e = goerr.New(err.Error())
+		e = goerr.Internal(err)
 	}
 
 	return
@@ -124,7 +130,7 @@ func (b *DB) Query(query string, args ...interface{}) (rows *sql.Rows, e goerr.I
 
 func (b *DB) QueryRow(query string, args ...interface{}) (row *sql.Row, e goerr.IError) {
 	if b.DB == nil {
-		e = goerr.New(" Queryer is nil ")
+		e = goerr.Internal(ErrQuerierIsNil)
 
 		return
 	}
@@ -136,7 +142,7 @@ func (b *DB) QueryRow(query string, args ...interface{}) (row *sql.Row, e goerr.
 	row = b.DB.QueryRow(prepare(query), args...)
 
 	if row == nil {
-		e = goerr.New("no data")
+		e = goerr.Internal(ErrNoData)
 	}
 
 	return
@@ -144,7 +150,7 @@ func (b *DB) QueryRow(query string, args ...interface{}) (row *sql.Row, e goerr.
 
 func (b *DB) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IError) {
 	if b.DB == nil {
-		e = goerr.New(" Queryer is nil ")
+		e = goerr.Internal(ErrQuerierIsNil)
 
 		return
 	}
@@ -155,7 +161,7 @@ func (b *DB) Exec(query string, args ...interface{}) (res sql.Result, e goerr.IE
 
 	res, err := b.DB.Exec(prepare(query), args...)
 	if err != nil {
-		e = goerr.New(err.Error())
+		e = goerr.Internal(err)
 	}
 
 	return

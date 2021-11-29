@@ -1,69 +1,108 @@
 package goerr
 
 import (
-	"fmt"
 	"net/http"
 )
 
 type IError interface {
 	Error() string
-	GetCode() int
-	GetDetails() []IError
-	PushDetail(IError)
-	GetMessage() string
-	HTTP(code int) IError
+	Code() int
+	Details() []IError
+	PushDetail(iError IError)
+	Tag(string)
+	GetTag() string
+	GetError() error
 }
 
-type AppError struct {
-	Code    int      `json:"code"`
-	Message string   `json:"message"`
-	Detail  []IError `json:"detail,omitempty"`
+type baseError struct {
+	err     error
+	code    int
+	tag     string
+	details []IError
 }
 
-func (e *AppError) PushDetail(ae IError) {
-	e.Detail = append(e.Detail, ae)
+func New(code int, err error) IError {
+	return &baseError{
+		code: code,
+		err:  err,
+	}
 }
 
-func (e *AppError) Error() (er string) {
-	er += fmt.Sprintf("Code: %v; ", e.Code)
+func Unauthorized(err error) IError {
+	return New(http.StatusUnauthorized, err)
+}
 
-	er += "Msg: " + e.Message + ";  "
+func Forbidden(err error) IError {
+	return New(http.StatusForbidden, err)
+}
 
-	if len(e.GetDetails()) == 0 {
-		return
+func BadRequest(err error) IError {
+	return New(http.StatusBadRequest, err)
+}
+
+func NotFound(err error) IError {
+	return New(http.StatusNotFound, err)
+}
+
+func NotAcceptable(err error) IError {
+	return New(http.StatusNotAcceptable, err)
+}
+
+func Conflict(err error) IError {
+	return New(http.StatusConflict, err)
+}
+
+func Unprocessable(err error) IError {
+	return New(http.StatusUnprocessableEntity, err)
+}
+
+func Internal(err error) IError {
+	return New(http.StatusInternalServerError, err)
+}
+
+func (c *baseError) Tag(tag string) {
+	c.tag = tag
+}
+
+func (c *baseError) GetTag() string {
+	return c.tag
+}
+
+func (c baseError) GetError() error {
+	return c.err
+}
+
+func (c *baseError) PushDetail(iError IError) {
+	c.details = append(c.details, &baseError{
+		code:    iError.Code(),
+		err:     iError.GetError(),
+		details: iError.Details(),
+		tag:     iError.GetTag(),
+	})
+}
+
+func (c baseError) Error() string {
+	return c.err.Error()
+}
+
+func (c baseError) Code() int {
+	return c.code
+}
+
+func (c baseError) Details() []IError {
+	if len(c.details) == 0 {
+		return nil
 	}
 
-	er += " Details: {"
+	res := make([]IError, 0, len(c.details))
 
-	for idx := range e.GetDetails() {
-		er += e.GetDetails()[idx].Error()
+	for i := range c.details {
+		res = append(res, &baseError{
+			code:    c.details[i].Code(),
+			err:     c.GetError(),
+			details: c.details[i].Details(),
+		})
 	}
 
-	er += "}"
-
-	return er
-}
-
-func (e *AppError) GetCode() int {
-	return e.Code
-}
-
-func (e *AppError) GetMessage() string {
-	return e.Message
-}
-
-func (e *AppError) GetDetails() []IError {
-	return e.Detail
-}
-
-func (e *AppError) HTTP(code int) IError {
-	e.Code = code
-
-	return e
-}
-
-func New(message string) IError {
-	e := &AppError{Code: http.StatusInternalServerError, Message: message}
-
-	return e
+	return res
 }
